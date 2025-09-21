@@ -1,0 +1,121 @@
+\begin{tikzpicture}[
+    % General settings
+    font=\sf\small, % Sans-serif font, small size
+    node distance=1cm and 1.5cm,
+    % Styles
+    module/.style={
+        rectangle, draw, thick, fill=blue!10,
+        minimum width=3.5cm, minimum height=2cm, rounded corners,
+        drop shadow
+    },
+    pin/.style={
+        rectangle, draw, fill=gray!20,
+        minimum width=0.8cm, minimum height=0.4cm,
+        font=\tiny\sf, outer sep=0pt
+    },
+    mcu/.style={
+        rectangle, draw, thick, fill=green!10,
+        minimum width=2.5cm, minimum height=1.5cm, rounded corners,
+        text centered, drop shadow
+    },
+    object/.style={
+        rectangle, draw, thick, fill=red!10,
+        minimum width=1cm, minimum height=3cm, rounded corners,
+        text centered, font=\sf\scriptsize, drop shadow
+    },
+    signal_line/.style={
+        draw, -{Stealth[length=2.5mm, width=1.5mm]}, thick
+    },
+    wave/.style={
+        draw, decorate, decoration={bumps, segment length=3mm, amplitude=0.5mm},
+        -{Stealth[length=2mm, width=1.2mm]}, thick, blue!70!black
+    },
+    timing_axis/.style={draw, -{Latex[length=2mm]}},
+    timing_signal/.style={draw, very thick},
+    label_text/.style={font=\sf\scriptsize, text centered},
+    formula_box/.style={
+        rectangle, draw, thick, fill=yellow!10, rounded corners,
+        text width=6cm, align=center, drop shadow
+    }
+]
+
+% === Part 1: Physical Setup ===
+\node[mcu] (mcu_block) {Microcontroller};
+
+\node[module, right=3cm of mcu_block] (hcsr04) {HC-SR04};
+
+% Pins for HC-SR04
+\node[pin, anchor=east] at ($(hcsr04.west)+(0,0.7)$) (vcc_pin) {VCC};
+\node[pin, anchor=east] at ($(hcsr04.west)+(0,0.2)$) (trig_pin_module) {TRIG};
+\node[pin, anchor=east] at ($(hcsr04.west)+(0,-0.3)$) (echo_pin_module) {ECHO};
+\node[pin, anchor=east] at ($(hcsr04.west)+(0,-0.8)$) (gnd_pin) {GND};
+
+% Internal components (conceptual)
+\node[circle, draw, fill=blue!30, minimum size=0.6cm, inner sep=1pt, font=\tiny\sf] at ($(hcsr04.center)+(-0.5cm,0)$) (transmitter) {T};
+\node[circle, draw, fill=green!30, minimum size=0.6cm, inner sep=1pt, font=\tiny\sf] at ($(hcsr04.center)+(0.5cm,0)$) (receiver) {R};
+\node[label_text, below=0.1cm of transmitter] {Transmitter};
+\node[label_text, below=0.1cm of receiver] {Receiver};
+
+% Connections from MCU to HC-SR04 pins
+\draw[signal_line] (mcu_block.east) -| ($(trig_pin_module.west)-(0.5cm,0)$) -- (trig_pin_module.west) node[midway, above, font=\sf\scriptsize] {TRIG Signal};
+\draw[signal_line, {Stealth[length=2.5mm, width=1.5mm]}-] (mcu_block.east) -| ($(echo_pin_module.west)-(0.8cm,0)$) -- (echo_pin_module.west) node[midway, below, font=\sf\scriptsize] {ECHO Signal};
+
+% Target Object
+\node[object, right=4cm of hcsr04] (target) {Target Object};
+
+% Ultrasonic Waves
+\coordinate (wave_origin) at ($(transmitter.east)+(0.2,0)$);
+\draw[wave, red!70!black] (wave_origin) -- ($(target.west)-(0.2,0)$) node[midway, above, font=\sf\scriptsize, sloped] {Transmitted Burst (40kHz)};
+\draw[wave, green!70!black] ($(target.west)-(0.2,0.1)$) .. controls ($(target.west)-(2,0.5)$) and ($(receiver.east)+(2,0.5)$) .. ($(receiver.east)+(0.2,0)$) node[midway, below, font=\sf\scriptsize, sloped, pos=0.4] {Reflected Echo};
+
+
+% === Part 2: Timing Diagram ===
+\begin{scope}[yshift=-5.5cm, xshift=-1cm] % Shift the timing diagram down and slightly left
+    \node[label_text, text width=3cm, anchor=north] at (0,0.5) {\textbf{Timing Diagram}};
+
+    % Axes
+    \draw[timing_axis] (0,0) -- (10,0) node[anchor=north west] {Time ($t$)};
+    \draw[timing_axis] (0,-0.2) -- (0,-2.2) node[anchor=south east] {Signal Level};
+    \node[label_text] at (-0.3, -0.5) {LOW};
+    \node[label_text] at (-0.3, -1.5) {HIGH};
+
+    % TRIG Signal
+    \node[label_text, anchor=east] at (-0.5, -0.8) {TRIG};
+    \draw[timing_signal, blue] (0,-0.5) -- (1,-0.5) -- (1,-1.5) -- (1.5,-1.5) -- (1.5,-0.5) -- (9.5,-0.5); % TRIG pulse
+    \draw[<->, dashed] (1,-1.6) -- (1.5,-1.6) node[midway, below, font=\sf\tiny] {$\ge 10 \mu s$};
+
+    % ECHO Signal
+    \node[label_text, anchor=east] at (-0.5, -1.8) {ECHO};
+    \draw[timing_signal, orange] (0,-1.5) -- (2.5,-1.5) -- (2.5,-2.0) -- (6.5,-2.0) -- (6.5,-1.5) -- (9.5,-1.5); % ECHO pulse
+    
+    % Annotations for ECHO pulse
+    \draw[<->, dashed] (2.5,-2.1) -- (6.5,-2.1) node[midway, below, font=\sf\tiny] {$T_{echo}$ (Echo Pulse Width)};
+    \draw[dashed, gray] (1.5, -0.5) -- (1.5, -2.2); % End of TRIG causes burst
+    \node[label_text, text width=2cm, fill=white, inner sep=1pt] at (2.0, -1.0) {8-cycle sonic burst};
+    \draw[->, bend right, dashed, gray] (2.0, -1.2) to (1.5, -1.55);
+
+
+    \draw[dashed, gray] (2.5, -1.5) -- (2.5, -2.2); % Start of ECHO
+    \node[label_text, text width=1.5cm, fill=white, inner sep=1pt] at (3.0, -1.2) {Echo received};
+     \draw[->, bend left, dashed, gray] (3.0, -1.4) to (2.5, -1.95);
+
+    \draw[dashed, gray] (6.5, -1.5) -- (6.5, -2.2); % End of ECHO
+    \node[label_text, text width=1.5cm, fill=white, inner sep=1pt] at (7.0, -1.2) {Echo ends};
+     \draw[->, bend right, dashed, gray] (7.0, -1.4) to (6.5, -1.95);
+
+    % Time of Flight (ToF) indication - conceptually linked to Techo
+    \draw[<->, decorate, decoration={brace, amplitude=5pt}, yshift=-0.5cm] (2.5,-2.2) -- (6.5,-2.2) node[midway, below=5pt, font=\sf\scriptsize] {Time of Flight (ToF) $\propto T_{echo}$};
+\end{scope}
+
+% === Part 3: Distance Calculation Formula ===
+\node[formula_box, below right=0.5cm and -1.5cm of target] (formula) {
+    \textbf{Distance Calculation:} \\
+    Distance $(D) = \frac{\text{Speed of Sound } (c) \times T_{echo}}{2}$ \\
+    where $c \approx 343 \text{ m/s in air at } 20^\circ\text{C}$ \\
+    $T_{echo}$ is the duration of the ECHO pulse.
+};
+
+% Title for the whole diagram
+\node[font=\sf\Large\bfseries, above=1cm of hcsr04.north] {Working Principle of HC-SR04 Ultrasonic Sensor};
+
+\end{tikzpicture}

@@ -1,0 +1,136 @@
+% ====== Advanced Academic Thesis Preamble ======
+% Font and Encoding
+\usepackage{fontspec}
+\usepackage{unicode-math}
+\usepackage{setspace}
+\usepackage{parskip}
+\usepackage{graphicx}
+\usepackage{caption}
+\usepackage{subcaption}
+\usepackage{xcolor}
+\usepackage{microtype}
+\usepackage{float}
+\usepackage{listings}
+\usepackage{tikz}
+\newcommand{\code}[1]{\texttt{#1}}
+\usetikzlibrary{
+    shapes.geometric,
+    arrows.meta,
+    positioning,
+    calc,
+    decorations.pathmorphing,
+    shadows,
+    fit
+}
+\usepackage{geometry}
+\geometry{a4paper, top=1in, bottom=1in, left=1.25in, right=1in}
+\onehalfspacing
+\setlength{\parskip}{6pt}
+\setlength{\parindent}{0pt}
+
+% ===== Colors for Academic Styling =====
+\definecolor{RoyalBlue}{RGB}{0,50,150}
+\definecolor{SlateGray}{RGB}{100,100,120}
+\definecolor{SoftGray}{gray}{0.45}
+\definecolor{Highlight}{RGB}{200,30,30} % Optional highlight color
+
+% ===== Section & Chapter Styling =====
+\usepackage{titlesec}
+\titleformat{\chapter}[display]
+  {\normalfont\huge\bfseries\color{RoyalBlue}}
+  {\chaptertitlename~\thechapter}{1em}{}
+  []  % <-- remove \vspace{1ex}\titlerule
+
+\titleformat{\section}[block]
+  {\normalfont\Large\bfseries\color{RoyalBlue}}
+  {\thesection}{1em}{}
+
+\titleformat{\subsection}[runin]
+  {\normalfont\large\bfseries\color{SlateGray}}
+  {\thesubsection}{1em}{}
+
+  
+% ===== Fancy Headers & Footers =====
+\usepackage{fancyhdr}
+\pagestyle{fancy}
+
+% Clear all headers and footers globally
+\fancyhf{}
+\renewcommand{\footrulewidth}{0pt} % remove footer line
+
+% Header: only for subsequent pages of chapters
+\fancyhead[L]{\color{RoyalBlue}\nouppercase{\leftmark}}
+\renewcommand{\headrulewidth}{0.4pt}
+\renewcommand{\headrule}{\hbox to\headwidth{\color{RoyalBlue}\leaders\hrule height \headrulewidth\hfill}}
+
+% Increase space between header and text content
+\setlength{\headsep}{25pt} % adjust as needed
+
+% Remove header on first page of each chapter
+\usepackage{etoolbox}
+\preto{\chapter}{\thispagestyle{empty}}
+
+% Remove footer entirely
+\fancyfoot{}
+
+
+
+% Disable headers/footers for frontmatter
+\usepackage{etoolbox}
+\preto{\chapter}{\thispagestyle{empty}}
+\AtBeginEnvironment{abstract}{\thispagestyle{empty}}
+\AtBeginDocument{%
+    \renewcommand{\chaptermark}[1]{\markboth{#1}{}} % Avoid headers for initial chapters
+}
+
+% ===== Hyperlinks =====
+\usepackage{hyperref}
+\hypersetup{
+    colorlinks=true,
+    linkcolor=RoyalBlue,
+    citecolor=RoyalBlue,
+    urlcolor=RoyalBlue,
+    pdftitle={Your Thesis Title},
+    pdfauthor={Your Name},
+    pdfsubject={Thesis Subject},
+    pdfkeywords={keyword1, keyword2, keyword3}
+}
+
+% ===== Code Listings =====
+\usepackage{listings}
+\lstset{
+    basicstyle=\ttfamily\footnotesize,
+    numbers=left,
+    numberstyle=\tiny,
+    numbersep=5pt,
+    frame=single,
+    breaklines=true,
+    postbreak=\mbox{\textcolor{Highlight}{$\hookrightarrow$}\space},
+    keywordstyle=\color{RoyalBlue},
+    commentstyle=\color{SoftGray},
+    stringstyle=\color{Highlight},
+    showstringspaces=false,
+    captionpos=b
+}
+
+% ===== Bibliography =====
+\usepackage[style=ieee, backend=biber]{biblatex}
+\addbibresource{18_references.bib}
+\DeclareFieldFormat[article,inbook,incollection]{title}{#1}
+
+% Change "Bibliography" to "References"
+\DefineBibliographyStrings{english}{
+  bibliography = {References},
+}
+
+% ===== Glossaries & Acronyms =====
+\usepackage[acronym]{glossaries}
+\makeglossaries
+
+% ===== Creative Academic Touches =====
+% Optional: shaded boxes for definitions or key terms
+\usepackage{tcolorbox}
+\tcbset{colback=RoyalBlue!5!white, colframe=RoyalBlue, fonttitle=\bfseries}
+
+% ===== Microtype Enhancements =====
+\usepackage{microtype}

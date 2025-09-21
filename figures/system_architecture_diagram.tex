@@ -1,0 +1,131 @@
+\begin{tikzpicture}[
+    auto,
+    % Node distances can be adjusted if needed, but current ones might work well in landscape
+    node distance=2.8cm and 3.8cm, % Adjusted vertical and horizontal spacing
+    % Styles for different types of nodes (mostly unchanged, but check text widths if needed)
+    block/.style={
+        rectangle, draw, thick,
+        fill=blue!10,
+        text width=3.8cm, text centered, % Slightly increased text width
+        rounded corners,
+        minimum height=1.4cm, % Slightly increased height
+        drop shadow
+    },
+    main-processor/.style={
+        rectangle, draw, thick,
+        fill=purple!20,
+        text width=4.8cm, text centered, % Slightly increased text width
+        rounded corners,
+        minimum height=1.6cm,
+        drop shadow
+    },
+    sensor/.style={
+        ellipse, draw, thick,
+        fill=green!20,
+        text width=3cm, text centered, % Slightly increased text width
+        minimum height=1.2cm,
+        drop shadow
+    },
+    mcu/.style={
+        rectangle, draw, thick,
+        fill=orange!20,
+        text width=3.2cm, text centered, % Slightly increased text width
+        rounded corners,
+        minimum height=1.4cm,
+        drop shadow
+    },
+    storage/.style={
+        cylinder, shape border rotate=90, draw, thick,
+        fill=gray!30,
+        aspect=0.5,
+        text width=2.8cm, text centered, % Slightly increased text width
+        minimum height=1.2cm,
+        drop shadow
+    },
+    external/.style={
+        rectangle, draw, thick,
+        fill=red!10,
+        text width=3cm, text centered, % Slightly increased text width
+        rounded corners,
+        minimum height=1.2cm,
+        drop shadow
+    },
+    decision/.style={
+        diamond, draw, thick,
+        fill=yellow!50,
+        text width=2.8cm, text centered, % Slightly increased text width
+        aspect=1.2,
+        minimum height=1.2cm,
+        drop shadow
+    },
+    arrow/.style={
+        draw, -{Stealth[length=3.5mm, width=2.5mm]}, % Slightly larger arrowheads
+        thick
+    },
+    data_label/.style={
+        font=\small, midway, % Slightly larger font for labels
+        fill=white, inner sep=2pt
+    },
+    note/.style={
+        font=\small\itshape, text width=3.5cm, fill=gray!5, rounded corners, inner sep=3pt % Slightly larger notes
+    }
+]
+
+% === Node Placement (Adjusted for more spacing) ===
+
+% Level 1: Sensing Components
+\node[sensor] (us_sensor) {Ultrasonic Sensor};
+\node[mcu, below=2.2cm of us_sensor] (arduino) {Arduino Microcontroller}; % More descriptive
+\node[note, text width=3.5cm, below left=0.1cm and -0.6cm of arduino.south] (arduino_task_note) {Measures Time-of-Flight (ToF), Calculates Vehicle Speed in real-time};
+
+% Level 2: Central Processing Unit (Raspberry Pi and Camera)
+% Position RPi to the right of Arduino. yshift can be adjusted if needed for landscape.
+\node[main-processor, right=4.5cm of arduino, yshift=0.5cm] (rpi) {Raspberry Pi (SBC)}; % Adjusted yshift slightly for landscape balance
+\node[note, text width=5cm, below=0.2cm of rpi.south] (rpi_task_note) {Receives speed, Captures images (Pi Camera), Conditional LPN Recognition (OpenCV, EasyOCR), Driver DB Lookup, Violation DB Ops, Email Trigger};
+\node[block, fill=cyan!10, above=1.5cm of rpi] (pi_camera) {Pi Camera Module};
+
+% Level 3: Decision Logic
+\node[decision, below=2.2cm of rpi] (speed_check) {Speed > Predefined Limit?}; % Adjusted distance
+
+% Level 4: Post-Decision Actions
+\node[block, fill=purple!10, text width=4cm, below=1.8cm of speed_check] (actions_block) {LPN Extraction, Driver Info Lookup, Violation Logging}; % Adjusted distance
+\node[note, text width=4.2cm, below left=0.1cm and -0.8cm of actions_block.south] (actions_details_note) {Image Proc: OpenCV \& EasyOCR; Driver Data: Hardcoded Lookup Table};
+
+% Level 5: Output, Storage, and External Entities
+% Position these relative to the central column, ensuring they fit landscape width
+\node[storage, right=4cm of actions_block, yshift=0.5cm] (sqlite_db) {SQLite Database (Local)}; % Adjusted horizontal distance
+\node[block, fill=teal!10, text width=3.5cm, right=4cm of speed_check, yshift=-0.5cm] (email_sys) {Automated Email System}; % Adjusted horizontal distance
+\node[external, below=2cm of email_sys] (driver) {Offending Driver};
+
+% === Connections (Paths and Arrows) ===
+
+% Sensing to Arduino
+\path[arrow] (us_sensor) -- node[data_label, text width=2.2cm, anchor=south east, near end] {Time-of-Flight Data} (arduino);
+
+% Arduino to Raspberry Pi
+\path[arrow] (arduino) -- node[data_label, text width=2.5cm, pos=0.55] {Calculated Vehicle Speed (via GPIO)} (rpi.west);
+
+% Pi Camera to Raspberry Pi
+\path[arrow] (pi_camera) -- node[data_label, text width=2.5cm, anchor=south east, near end] {Images (Continuous Capture)} (rpi.north);
+
+% Raspberry Pi internal flow to decision point
+\path[arrow] (rpi.south) -- node[data_label, text width=3cm, midway, left] {} (speed_check.north);
+
+% Decision outcomes
+\path[arrow] (speed_check.south) -- node[data_label, midway, left] {Yes (Violation)} (actions_block.north);
+\draw[arrow, densely dashed] (speed_check.east) -| node[data_label, pos=0.25, above] {No} ($(speed_check.east)+(2.0cm,0)$) node[right, font=\small] {No Action / Idle}; % Adjusted offset for 'No' path
+
+% Actions block to Database and Email System
+\path[arrow] (actions_block.east) -- node[data_label, text width=3cm, pos=0.45] {Violation Record (LPN, Speed, Timestamp, etc.)} (sqlite_db.west);
+\path[arrow] (actions_block.east) .. controls +(east:1.5cm) and +(west:1.5cm) .. node[data_label, text width=3cm, pos=0.6] {Violation Details for Notification} (email_sys.west); % Adjusted control points for wider layout
+
+% Email System to Driver
+\path[arrow] (email_sys.south) -- node[data_label, text width=3cm] {Automated Email Notification (Fine, Reason for Penalty)} (driver.north);
+
+% === Grouping Box for Raspberry Pi Hosted Logic ===
+% The fit node should adapt to the new positions of its contents.
+\node[rectangle, draw, thick, blue, densely dotted, inner sep=12pt, rounded corners,
+    label={[blue, yshift=0.25cm]above:\textbf{Central Processing \& Enforcement Logic (Hosted on Raspberry Pi)}}]
+    (rpi_system_boundary) [fit=(rpi) (pi_camera) (speed_check) (actions_block)] {};
+
+\end{tikzpicture}

@@ -1,0 +1,88 @@
+
+\section{Theoretical Review of the Literature}
+
+Vehicle speed detection is an essential component of intelligent transportation systems (ITS), contributing to improved traffic management, road safety, and enforcement of legal speed limits~\cite{its_overview}. Several methods have been proposed and implemented for vehicle speed estimation, with ultrasonic sensors and image processing standing out due to their affordability and practical feasibility.
+
+\section*{Ultrasonic Sensor-Based Vehicle Speed Detection}
+
+Ultrasonic sensors function by emitting high-frequency sound waves and measuring the time it takes for the echo to return after reflecting off a nearby object. This time-of-flight (ToF) measurement is used to compute distance. By capturing distance at two distinct time points, the velocity of a moving object can be estimated~\cite{ultrasonic_random_nerd}.
+
+The HC-SR04 ultrasonic sensor is a popular choice in academic and prototype projects because of its low cost, ease of use, and compatibility with microcontrollers like the Arduino. Various implementations have used a pair of ultrasonic sensors placed at a fixed distance to determine vehicle speed based on the time a vehicle takes to pass between them~\cite{ultrasonic_researchgate}. Alternatively, a single sensor aligned with the motion direction can also infer speed by measuring how quickly the object approaches or recedes~\cite{ultrasonic_ieee_paper}.
+
+Despite their practicality, ultrasonic sensors have several limitations:
+\begin{itemize}
+    \item Limited detection range and narrow beam width
+    \item Sensitivity to environmental factors such as temperature, wind, and noise
+    \item Inaccurate measurements for small, irregular, or angled objects
+\end{itemize}
+
+Nevertheless, for short-range, low-speed environments, ultrasonic sensors are widely regarded as viable solutions~\cite{ultrasonic_instructables}.
+
+\section*{Image Processing-Based Vehicle Speed Detection}
+
+Image processing techniques calculate speed by analyzing vehicle motion across consecutive video frames. This approach involves capturing images, segmenting moving vehicles, and tracking them over time. Given the frame rate and a known real-world reference distance, speed can be computed based on the displacement of the vehicle between frames~\cite{image_processing_speed_detection}.
+
+This method offers distinct advantages, including visual confirmation of events, license plate recognition, and the possibility of integrating AI-based object detection and classification. However, it also introduces challenges such as:
+\begin{itemize}
+    \item Sensitivity to ambient lighting and adverse weather
+    \item Requirements for high-resolution cameras and fixed installations
+    \item Greater processing demands for real-time operation
+\end{itemize}
+
+Despite these challenges, image-based vehicle speed detection systems remain prevalent, particularly when hardware such as the Raspberry Pi is used to balance computational efficiency and portability.
+
+\section*{License Plate Recognition (LPR)}
+
+License Plate Recognition (LPR) is a specialized form of Optical Character Recognition (OCR) used to identify vehicles based on their license plates from captured images or video frames. It plays a vital role in intelligent transportation systems (ITS) by enabling automated enforcement, vehicle tracking, toll collection, and parking management~\cite{lpr_survey}.
+
+A typical LPR pipeline consists of four main stages:
+\begin{enumerate}
+    \item {Image Acquisition:} Capturing images or video frames using a camera, typically mounted at an overhead or roadside location.
+    \item {License Plate Detection:} Locating the region of interest (ROI) where the license plate exists in the image.
+    \item {Character Segmentation:} Isolating individual characters from the plate.
+    \item {Character Recognition:} Applying OCR or deep learning methods to interpret segmented characters.
+\end{enumerate}
+
+\subsection*{Traditional vs Deep Learning-Based Approaches}
+
+Traditional LPR systems relied heavily on rule-based methods and handcrafted features such as edge detection, morphological operations, and projection profiles for character segmentation and recognition~\cite{traditional_lpr}. While effective under controlled lighting and simple backgrounds, these methods struggled with blurred, tilted, or occluded plates.
+
+Recent advances in deep learning have significantly improved LPR robustness and accuracy. Convolutional Neural Networks (CNNs) and object detection models like YOLO (You Only Look Once) and SSD (Single Shot Detector) have been applied to detect license plates in challenging conditions~\cite{yolo_lpr}. Once the plate is detected, sequence models such as Recurrent Neural Networks (RNNs) or CRNNs (Convolutional Recurrent Neural Networks) are used to recognize characters without explicit segmentation~\cite{crnn_lpr}.
+
+\subsection*{Lightweight Models for Embedded Systems}
+
+For resource-constrained platforms such as the Raspberry Pi, lightweight deep learning models like YOLOv4-tiny and MobileNet-SSD offer real-time performance while maintaining acceptable accuracy~\cite{mobilenet_lpr}. Pretrained models such as `openalpr` and `EasyOCR` are widely adopted due to their ease of integration and high success rates in common scenarios~\cite{easyocr}.
+
+\subsection*{Challenges in LPR}
+
+Despite progress, several challenges persist in LPR:
+\begin{itemize}
+    \item {Environmental Sensitivity:} Variations in lighting, shadows, weather, and motion blur can significantly affect detection and recognition accuracy.
+    \item {Plate Diversity:} Differences in plate formats, fonts, languages, and mounting positions add complexity to general-purpose models.
+    \item {Occlusions and Angles:} Obstructed or angled views of plates reduce detection accuracy, particularly for traditional models.
+\end{itemize}
+
+By combining LPR with speed violation detection in a modular system, violations can be documented with vehicle identification data, supporting automated enforcement and centralized logging.
+
+
+\section{Empirical Review}
+
+Recent research has demonstrated the effectiveness of various sensor-based and image-based techniques for vehicle monitoring systems. In particular, ultrasonic sensors have gained traction for short-range, low-power speed detection. For instance,~\cite{ultrasonic_researchgate} implemented a dual-ultrasonic sensor arrangement and demonstrated reliable speed estimation in controlled environments. Likewise,~\cite{ultrasonic_ieee_paper} used a network of ultrasonic transceivers to improve accuracy and classify vehicle types through waveform analysis and reflection timing.
+
+Despite their low cost and energy efficiency, ultrasonic systems face limitations in noisy outdoor environments, especially under conditions involving angled incidence, wind interference, or large vehicle surfaces causing signal dispersion. However, their performance in specific detection zones makes them suitable for triggering events like speed violations.
+
+On the other hand, image-based systems—particularly those leveraging machine learning and optical character recognition (OCR)—are widely used for vehicle identification through License Plate Recognition (LPR). Systems like OpenALPR and EasyOCR have been deployed for detecting and reading license plates under varied lighting and traffic conditions~\cite{lpr_survey, easyocr_github}. These methods often involve multiple stages such as image preprocessing, localization, character segmentation, and recognition.
+
+Studies have shown that LPR systems are sensitive to factors such as motion blur, lighting variations, and low-resolution imagery~\cite{lpr_challenges_paper}. Nevertheless, modern approaches employing convolutional neural networks (CNNs) have improved robustness and character recognition accuracy, even in low-quality frames~\cite{cnn_lpr_improvement}.
+
+Recent works have also explored combining detection and recognition in resource-constrained environments. For instance, lightweight LPR algorithms have been adapted for Raspberry Pi platforms to enable edge computing and real-time traffic monitoring~\cite{raspi_lpr_edge}. These systems benefit from triggering mechanisms to minimize power consumption and unnecessary computation, a principle that aligns well with ultrasonic sensor activation.
+
+\section{Research Gaps}
+
+While both ultrasonic and image processing technologies offer valuable tools for vehicle monitoring, each exhibits limitations when used independently. Ultrasonic sensors, though affordable and power-efficient, provide limited contextual information and are prone to errors due to ambient noise or improper alignment. They are primarily effective at measuring distance or speed in constrained scenarios and offer no means of identifying specific vehicles.
+
+Conversely, image-based systems, especially those used for License Plate Recognition (LPR), are computationally intensive and require high-quality images with consistent lighting. When used continuously, these systems can overwhelm low-power edge devices like the Raspberry Pi. Furthermore, in traffic scenarios with multiple vehicles or occluded views, image-based tracking and recognition become challenging without precise event triggers.
+
+The gap lies in creating a low-cost, hybrid system that balances sensing accuracy, computational efficiency, and reliability. This research proposes a fused approach where an ultrasonic sensor monitors vehicle speed in real time and activates image capture only upon speed threshold violations. The image is then processed using a lightweight LPR algorithm on the Raspberry Pi to extract license plate details and assign penalties. This conditional activation strategy reduces computational overhead, enhances energy efficiency, and optimizes resource usage while maintaining real-time response capability.
+
+By leveraging the strengths of both ultrasonic sensing and image-based recognition, this hybrid architecture addresses individual weaknesses and provides a practical, scalable solution for smart traffic enforcement systems.

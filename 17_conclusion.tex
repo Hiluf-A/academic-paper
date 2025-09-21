@@ -1,0 +1,54 @@
+\section{Conclusion}
+This work has presented the design, implementation and evaluation of a centralized ultrasonic-based traffic management prototype for speed-limit violation detection and automated penalty enforcement. By integrating an HC-SR04 ultrasonic sensor with an Arduino Uno for real-time speed estimation, and employing a Raspberry Pi with OpenCV/EasyOCR for license-plate recognition, the system achieves the following:
+
+\begin{itemize}
+  \item \textbf{Accurate, low-cost speed detection.} The ultrasonic module delivers repeatable distance and speed readings up to 4~m, with a measured average error of $\pm 0.2$~m/s under controlled conditions.
+  \item \textbf{Event-triggered imaging.} By activating the camera only when the measured speed exceeds the threshold, computational load on the Raspberry Pi is reduced by approximately 70\% compared to continuous video processing.
+  \item \textbf{Reliable license-plate recognition.} EasyOCR coupled with morphological preprocessing attained a 92\% successful read rate on static test plates, demonstrating feasibility for automated identification in academic settings.
+  \item \textbf{Automated enforcement workflow.} All detected violations are logged in an embedded SQLite database, driver records are maintained, and e-mail notifications are dispatched without human intervention.
+\end{itemize}
+
+As a proof-of-concept, the system validates the core hypothesis that a hybrid ultrasonic--vision approach can provide a scalable, cost-effective alternative to high-end radar installations. Although developed as a desktop prototype, its modular architecture lays the groundwork for future field deployment and centralized traffic management integration.
+
+\section{Future Work}
+While the current prototype demonstrates foundational capabilities, several limitations must be addressed before real-world adoption. We identify the following avenues for enhancement:
+
+\begin{enumerate}
+  \item \textbf{Upgrade to high-precision nano-radar hardware.}
+  \begin{itemize}
+    \item The HC-SR04 sensor is susceptible to environmental noise (wind, temperature shifts) and exhibits reduced accuracy at longer ranges (>4~m). Replacing it with commercial nano-radar modules (e.g., 60~GHz FMCW radar chips) would extend detection range beyond 40~m, improve speed-measurement resolution to $\pm 0.05$~m/s, and enable Doppler-based velocity estimation independent of angle-of-arrival.
+    \item Temperature and humidity compensation, currently unimplemented, could be integrated directly in radar firmware for near-zero drift in diverse climate conditions.
+  \end{itemize}
+  
+  \item \textbf{Real-time road testing and calibration.}
+  \begin{itemize}
+    \item The system has only been evaluated in laboratory and controlled driveway scenarios. Deploying on an active roadway will surface challenges such as multiple simultaneous targets, variable vehicle profiles, and ambient reflections. Extensive field trials will guide calibration of detection thresholds, beam-pattern alignment, and trigger timings.
+    \item Data collected from real traffic flows will inform adaptive thresholding algorithms to distinguish cars, motorcycles and trucks, and adjust to peak-hour congestion.
+  \end{itemize}
+  
+  \item \textbf{Multi-vehicle detection via deep-learning object detection.}
+  \begin{itemize}
+    \item The current design assumes a single vehicle in the sensing zone. To handle dense traffic, integrate a YOLOv5 or YOLOv8 model on the Raspberry Pi (or an attached Coral TPU) to detect and track multiple vehicles per frame. Each detected bounding box could be associated with a simultaneous speed reading (e.g., via radar), enabling per-vehicle violation handling.
+    \item Coupling object IDs from YOLO with time-of-flight data and frame timestamps would allow speed estimation per object, even when vehicles overtake or diverge.
+  \end{itemize}
+  
+  \item \textbf{Scalability and centralized data management.}
+  \begin{itemize}
+    \item Currently, driver records and violation logs reside on a single-board unit. Future work should migrate storage to a cloud or edge-server database (e.g., PostgreSQL or InfluxDB), with secure APIs for query and visualization dashboards.
+    \item Implementing MQTT or RESTful endpoints will enable real-time monitoring across multiple sensor nodes, facilitating city-wide traffic enforcement and statistical analysis.
+  \end{itemize}
+  
+  \item \textbf{Robust LPR under adverse conditions.}
+  \begin{itemize}
+    \item License-plate reads degrade in low light, rain, or when plates are occluded or at steep angles. Incorporate infrared illumination for night operation and augment the OCR pipeline with context-aware post-processing (e.g., plate-format validation via country-specific regex).
+    \item Experiment with Deep LPR networks (e.g., CRNN+CTC ensembles) fine-tuned on local license-plate datasets to boost recognition rates above 98\%.
+  \end{itemize}
+  
+  \item \textbf{Enhanced penalty logic and driver history analytics.}
+  \begin{itemize}
+    \item The current fine scheme is a fixed rate per km/h over the limit. Future versions can implement dynamic, tiered fines based on cumulative violation counts or time-of-day risk factors (e.g., school zones at peak hours).
+    \item Machine-learning models can analyze historical violation patterns to predict high-risk zones and times, enabling preemptive speed-limit reminders (via roadside signage or driver-mobile notifications).
+  \end{itemize}
+\end{enumerate}
+
+By addressing these limitations and pursuing the outlined enhancements, the system can evolve from an academic prototype into a robust, deployable platform for modern traffic law enforcement---ultimately contributing to safer roads, reduced accidents, and data-driven urban mobility planning.

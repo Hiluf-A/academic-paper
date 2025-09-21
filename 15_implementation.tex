@@ -1,0 +1,104 @@
+
+\section{System Overview}
+This section provides a high-level summary of the hardware and software components implemented in the vehicle speed detection and penalty enforcement system. The architecture integrates an Arduino-based ultrasonic module for speed measurement and a Raspberry Pi-based framework for image capture, license plate recognition, violation recording, and notification.
+
+\section{Hardware Implementation}
+
+\subsection{Ultrasonic Speed Measurement (Arduino)}
+The HC-SR04 ultrasonic sensor is mounted perpendicular to the roadway at a height of 5cm. The Arduino measures vehicle speed using two successive time-of-flight (ToF) readings separated by a fixed physical interval. Calculated speed values are transmitted via serial comm. USB to the Raspberry Pi. Detailed operation:
+\begin{enumerate}
+  \item Trigger a 40~kHz ultrasonic burst via the TRIG pin (10~\textmu s HIGH).
+  \item Measure the echo pulse duration on the ECHO pin to compute distance using Equation~\eqref{eq:hc_distance_eq}.
+  \item Estimate speed by differencing successive distances over a fixed time interval (50~ms).
+  \item Output a digital to Raspberry Pi.
+\end{enumerate}
+
+\subsection{Raspberry Pi Camera Setup}
+A Raspberry Pi Camera Module V2 is configured via the \texttt{picamera2} library to capture 1280\,$\times$\,720 JPEG frames at 10~Hz. Images are stored in a timestamped directory structure for subsequent processing.
+
+\section{Software Implementation}
+\subsection*{Software Implementation on Arduino}
+
+The Arduino is programmed to measure the speed of approaching vehicles using a single ultrasonic sensor (HC-SR04) and to communicate with the Raspberry Pi when a speed violation is detected. The key responsibilities of the Arduino code are to perform distance measurements, compute real-time speed, display results on an LCD, and trigger an alert to the Raspberry Pi in the event of a speeding violation.
+
+\subsubsection*{Libraries Used}
+
+To simplify the implementation, the following libraries were used:
+
+\begin{itemize}
+    \item \texttt{HCSR04.h}: Facilitates precise distance measurement using the HC-SR04 ultrasonic sensor.
+    \item \texttt{Wire.h}: Supports I\textsuperscript{2}C communication, which is essential for interfacing with the LCD.
+    \item \texttt{LiquidCrystal\_I2C.h}: Manages the 16x2 LCD display using the I\textsuperscript{2}C interface, reducing the number of GPIO pins required.
+\end{itemize}
+
+\subsubsection*{Measurement and Display Logic}
+
+The Arduino performs multiple ultrasonic distance readings in quick succession and computes an average to improve reliability and reduce the impact of sensor noise. Speed is calculated using the difference between successive distance measurements divided by the time elapsed. The result, initially in cm/s, is converted to km/h and displayed on a 16x2 LCD screen alongside the distance.
+
+To prevent erratic readings, the code includes filtering logic such as range validation and minimum update intervals. This ensures that only valid, stable measurements are used in the computation.
+
+\subsubsection*{Speed Violation Detection and Signaling}
+
+When the computed speed exceeds a predefined threshold , a GPIO pin on the Arduino is toggled HIGH for a short duration to signal the Raspberry Pi. This serves as an interrupt-style alert for further processing. A debounce mechanism is included to prevent repeated signals within a short timeframe, ensuring each event is uniquely recognized and handled.
+
+\subsubsection*{Code and Circuit Layout}
+
+The complete Arduino code and the corresponding Proteus simulation layout used for testing and validation are provided in \textbf{Appendix A}.
+
+\section{Software Implementation: License Plate Recognition System}
+
+This section presents the software implementation of the License Plate Recognition (LPR) system, a core component of the overall speed monitoring solution. The system is designed to automatically detect and read vehicle license plates, particularly for those that exceed a predefined speed limit, and log relevant violation data. The software architecture follows a modular design, comprising components for image acquisition, license plate processing, violation management, and automated notification.
+
+\subsubsection*{Production Environment (Raspberry Pi)}
+
+For the deployment phase, the Raspberry Pi serves as the host platform. The system utilizes the \texttt{picamera2} library to interface with the Pi camera module. The camera is configured to capture high-resolution images at 1920$\times$1080 pixels, which are then passed to the image processing pipeline.
+
+
+\subsection{License Plate Processing Module}
+
+At the core of the LPR system lies its capability to extract license plate information from images. The processing workflow comprises several stages:
+
+\subsubsection{Preprocessing}
+
+Captured images are first converted to grayscale, followed by the application of a Gaussian blur. These operations are essential for reducing noise and enhancing salient features needed for reliable license plate detection.
+
+\subsubsection{Feature Extraction}
+
+The Canny edge detection algorithm is applied to the preprocessed images to identify object boundaries. This aids in highlighting potential license plate regions.
+
+\subsubsection{Region of Interest (ROI) Identification}
+
+Contours are extracted from the edge-detected image. These contours are evaluated based on geometric properties, particularly aspect ratio, which helps isolate regions likely to contain license plates.
+
+\subsubsection{Optical Character Recognition (OCR)}
+
+Once a candidate license plate region is identified, the system uses the \texttt{easyocr} library to perform OCR. This converts the visual characters within the image to machine-readable text. The OCR engine is configured to recognize English alphanumeric characters.
+
+\subsection{Speed Monitoring and Violation Management Module}
+
+This module integrates real-time speed monitoring with the LPR component to manage speed limit violations.
+
+\subsubsection{Speed Detection Integration}
+
+In the production environment, speed data is received via a serial USB on the Raspberry Pi. For development and testing, speed values are simulated.
+
+\subsubsection{Thresholding and Triggering}
+
+A speed threshold (20.0 m/s) is defined. When a vehicle's measured speed exceeds this limit, the system triggers the violation logging process.
+
+\subsubsection{Violation Logging}
+
+Upon detecting a violation, the system logs the following information:
+\begin{itemize}
+    \item Timestamp of the event,
+    \item Measured vehicle speed,
+    \item Extracted license plate number,
+    \item Captured image of the vehicle.
+\end{itemize}
+These data points are stored in a centralized database for analysis and future reference.
+
+\subsubsection{Automated Notification}
+
+An automated notification mechanism is implemented. The system queries the database for driver profiles corresponding to the detected license plate. If a match is found and an email address is available, an email notification is automatically dispatched, including violation details and the image of the vehicle.
+
+For further details about the codes, refer Appendix B and C.

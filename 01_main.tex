@@ -1,0 +1,58 @@
+\documentclass[12pt,a4paper]{book}
+
+% Load advanced preamble
+\input{02_preamble}
+
+\begin{document}
+
+% ---------------- FRONTMATTER ----------------
+\frontmatter  % Roman page numbers, unnumbered chapters
+
+% Title & Preliminary Pages (No headers)
+\thispagestyle{empty}
+\input{03_title}
+\input{06_declaration}
+\input{05_acknowledgement}
+\input{04_abstract}
+\tableofcontents
+\listoffigures
+%\listoftables
+\printglossary[type=\acronymtype, title=List of Abbreviations]
+
+% ---------------- MAINMATTER ----------------
+\mainmatter  % Arabic page numbers, numbered chapters
+
+% Remove header on first page of each chapter
+\preto{\chapter}{\thispagestyle{empty}}
+
+
+\chapter{Introduction}
+\input{12_introduction}
+
+\chapter{Literature Review}
+\input{13_literature_review}
+
+\chapter{Methodology}
+\input{14_methodology}
+
+\chapter{Implementation}
+\input{15_implementation}
+
+\chapter{Results and Discussion}
+\input{16_results}
+
+\chapter{Conclusion and Future Work}
+\input{17_conclusion}
+
+% ---------------- BIBLIOGRAPHY ----------------
+\printbibliography
+
+% ---------------- APPENDICES ----------------
+\appendix
+%\chapter{Appendix A}
+\input{appendices/appendixA}
+
+%\chapter{Appendix B}
+\input{appendices/appendixB}
+
+\end{document}
