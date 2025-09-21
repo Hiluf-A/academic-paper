@@ -11,7 +11,7 @@ This repository contains the complete LaTeX source files for my academic thesis,
  The project demonstrates my ability to design modular, professional, and publication-ready documents using LaTeX — skills I also apply in academic, research, and professional report preparation.
 
 📝 This repository also serves as a portfolio example of my expertise in LaTeX document design, IEEE citation style, and research presentation.
-Repository Structure:    ├── appendices/                  # Supplementary material
+Repository Structure:                                                                                                                                                                                               ├── appendices/                  # Supplementary material
 ├── figures/                     # Figures and diagrams
 ├── 01_main.tex                  # Main file (compile this)
 ├── 02_preamble.tex              # Custom preamble with packages & formatting
